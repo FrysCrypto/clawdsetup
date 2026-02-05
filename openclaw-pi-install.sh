@@ -335,12 +335,16 @@ banner "Phase 5/7 — Installing OpenClaw"
 
 info "Running the official OpenClaw installer..."
 
-# The official installer script handles npm global install + systemd setup
-# We pipe 'yes' responses but the onboarding wizard needs to run interactively
-# So we install first, then configure manually
-curl -fsSL https://openclaw.bot/install.sh | bash || {
-    warn "Installer script had issues. Trying npm global install fallback..."
-    npm install -g @openclaw/cli
+# Try the npm global install (this is the recommended method)
+npm install -g openclaw@latest || {
+    warn "npm global install failed. Trying from source..."
+    cd "$HOME"
+    git clone https://github.com/openclaw/openclaw.git openclaw-src
+    cd openclaw-src
+    npm install
+    npm run build
+    npm link
+    cd "$HOME"
 }
 
 # Ensure openclaw is on PATH
