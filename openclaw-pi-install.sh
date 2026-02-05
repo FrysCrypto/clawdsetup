@@ -133,15 +133,25 @@ sudo apt-get install -y \
     vim \
     gh \
     ffmpeg \
-    chromium-browser \
     unzip \
+    zstd \
     htop \
     tmux \
     ca-certificates \
     gnupg \
     lsb-release \
+    apt-transport-https \
     python3 \
-    python3-pip
+    python3-pip \
+    pv \
+    rsync \
+    dnsutils
+
+# Chromium package name varies by distro
+info "Installing Chromium browser..."
+sudo apt-get install -y chromium-browser 2>/dev/null || \
+    sudo apt-get install -y chromium 2>/dev/null || \
+    warn "Could not install Chromium — browser automation may not work. Install manually later."
 
 # Install Docker (lightweight, useful for sandboxing if desired later)
 info "Installing Docker..."
