@@ -236,13 +236,15 @@ echo ""
 echo "  1) Anthropic Claude (API key)"
 echo "  2) OpenAI / ChatGPT (API key)"
 echo "  3) OpenRouter (API key — multi-model access)"
-echo "  4) Skip for now (configure later via 'openclaw configure')"
+echo "  4) Ollama (local models — already installed, free but less capable)"
+echo "  5) Skip for now (configure later via 'openclaw configure')"
 echo ""
 ask_input "Choose provider" LLM_CHOICE "1"
 
 ANTHROPIC_API_KEY=""
 OPENAI_API_KEY=""
 OPENROUTER_API_KEY=""
+USE_OLLAMA=false
 
 case "$LLM_CHOICE" in
     1)
@@ -261,6 +263,12 @@ case "$LLM_CHOICE" in
         ask_secret "Enter your OpenRouter API key:" OPENROUTER_API_KEY
         ;;
     4)
+        USE_OLLAMA=true
+        info "Ollama selected — will use local models (qwen3:1.7b as default)."
+        info "Note: Local models are much less capable than Claude for complex tasks."
+        info "You can always add a cloud API later via 'openclaw configure'."
+        ;;
+    5)
         warn "Skipping LLM setup — you'll need to run 'openclaw configure' later."
         ;;
 esac
@@ -449,7 +457,9 @@ fi
 
 # Determine primary model
 PRIMARY_MODEL="claude-sonnet-4-5-20250929"
-if [ -n "$ANTHROPIC_API_KEY" ]; then
+if [ "$USE_OLLAMA" = true ]; then
+    PRIMARY_MODEL="ollama:qwen3:1.7b"
+elif [ -n "$ANTHROPIC_API_KEY" ]; then
     PRIMARY_MODEL="claude-sonnet-4-5-20250929"
 elif [ -n "$OPENAI_API_KEY" ]; then
     PRIMARY_MODEL="gpt-4o"
