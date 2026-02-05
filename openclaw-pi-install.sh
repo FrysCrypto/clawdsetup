@@ -448,11 +448,14 @@ fi
 BRAVE_CONFIG=""
 if [ -n "$BRAVE_API_KEY" ]; then
     BRAVE_CONFIG=$(cat << BRAVEEOF
-  "webSearch": {
-    "enabled": true,
-    "provider": "brave",
-    "brave": {
-      "apiKey": "$BRAVE_API_KEY"
+  "tools": {
+    "web": {
+      "search": {
+        "provider": "brave",
+        "apiKey": "$BRAVE_API_KEY",
+        "maxResults": 5,
+        "timeoutSeconds": 30
+      }
     }
   },
 BRAVEEOF
@@ -460,15 +463,15 @@ BRAVEEOF
 fi
 
 # Determine primary model
-PRIMARY_MODEL="claude-sonnet-4-5-20250929"
+PRIMARY_MODEL="anthropic/claude-sonnet-4-5-20250929"
 if [ "$USE_OLLAMA" = true ]; then
-    PRIMARY_MODEL="ollama:qwen3:1.7b"
+    PRIMARY_MODEL="ollama/qwen3:1.7b"
 elif [ -n "$ANTHROPIC_API_KEY" ]; then
-    PRIMARY_MODEL="claude-sonnet-4-5-20250929"
-elif [ -n "$OPENAI_API_KEY" ]; then
-    PRIMARY_MODEL="gpt-4o"
-elif [ -n "$OPENROUTER_API_KEY" ]; then
     PRIMARY_MODEL="anthropic/claude-sonnet-4-5-20250929"
+elif [ -n "$OPENAI_API_KEY" ]; then
+    PRIMARY_MODEL="openai/gpt-4o"
+elif [ -n "$OPENROUTER_API_KEY" ]; then
+    PRIMARY_MODEL="openrouter/anthropic/claude-sonnet-4-5-20250929"
 fi
 
 # Write config — only if no existing config (don't clobber)
@@ -476,7 +479,6 @@ if [ ! -f "$CONFIG_FILE" ]; then
     cat > "$CONFIG_FILE" << CONFIGEOF
 {
   "gateway": {
-    "bind": "localhost",
     "port": 18789
   },
   "channels": {
@@ -491,10 +493,25 @@ if [ ! -f "$CONFIG_FILE" ]; then
   },
   "agents": {
     "defaults": {
-      "model": "$PRIMARY_MODEL",
-      "sandbox": {
-        "browser": {
-          "headless": true
+      "model": {
+        "primary": "$PRIMARY_MODEL"
+      },
+      "workspace": "$WORKSPACE_DIR",
+      "compaction": {
+        "mode": "safeguard"
+      },
+      "maxConcurrent": 4,
+      "subagents": {
+        "maxConcurrent": 8
+      }
+    }
+  },
+  "hooks": {
+    "internal": {
+      "enabled": true,
+      "entries": {
+        "session-memory": {
+          "enabled": true
         }
       }
     }
